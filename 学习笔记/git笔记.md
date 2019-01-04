@@ -2,7 +2,7 @@ git笔记
 
 ssh-keygen 生成ssh key
 
-=======基本操作
+# 基本操作
 
 git init
 git clone 克隆仓库，除了可以clone远程仓库，还可以clone本地仓库
@@ -90,3 +90,33 @@ git tag -a v0.9 85fc7e7 指定在85fc7e7（可通过git log --oneline查看）�
 1.git中文显示乱码
 gitbash窗口中右击选择Options->Text
 local：zh_CN  Character set: UTF-8
+
+
+
+# Git 其他使用
+
+## 2019.1.4 星期五
+### 问题：想要将已存在的目录转换为一个Git项目托管到GitHub上
+
+* 在本地目录执行  
+    > git init
+* 将所有文件加入到本地git仓库
+    > git add .
+* 提交到仓库
+    > git commit -m "Init"
+* 访问GtiHub，创建一个新的仓库，并获取该git仓库的url地址
+    > https://github.com/xxx.git
+* 本地gitbash终端执行指令
+    > git remote add origin https://github.com/xxx.git
+* 检查是否成功
+    > git remote -v
+* 推送本地到远端GitHub仓库
+    > git push origin master
+    
+    `注意：如果推送失败，并提示refusing to merge unrelated histories错误，那么应该是GitHub上创建时勾选了Initialize this repository with a README初始化远程仓库。那么本地跟远程仓库就是两个不同的git库，无法直接合并。需要先从远端进行pull更新合并`
+    >git push origin master --allow-unrelated-histories
+    
+    `使用如上指令先pull，不加--allow-unrelated-histories会导致pull失败。执行完pull后，再执行git push origin master即可`
+
+
+***

@@ -1,0 +1,25 @@
+游戏启动流程
+
+->StartUp启动
+->VideoPlayerController.Start  登陆CG展示
+->StartUp.InitFramework()  初始化流程：添加各类组件：如AudioMgr,SocketMgr,HttpConnection,NativeMgr等
+->BundleManager.Init
+->(Editor)SimulationBundleLoader.Start / (Mobile)AoUnityBundleLoader.Start 加载BundleSettings
+->LuaManager.Instance.StartupLua() 启动lua脚本
+->LuaManager.OnStartLua  初始化lua脚本等
+->LuaManager.StartHotUpdate 开始热更
+
+
+->lua层
+->HotUpdate:Main()
+->BootstrapLauncher:start()
+->BootstrapLauncher:startHotUpdate()
+根据平台选择下载version.manifest版本文件和project.manifest项目url地址等参数。如windows平台
+self.helper = Framework.HotUpdate.GameUpdateHelper.Instance
+->self.helper:StartUpdate('http://www.aqdev.info/Versions/Windows/version.manifest', 'http://www.aqdev.info/Versions/Windows/project.manifest')
+
+->回到c#层
+->GameUpdateHelper.StartUpdate
+->GameUpdateMgr.Instance.CheckUpdate(domain, appCode, platform, channel);
+	VersionMgr.Instance.LoadLocalVersionCode 检查对比本地的版本号与热更的版本号做处理
+->MainThreadRunner.Instance.StartCoroutine(VersionMgr.Instance.LoadRemoteVersionCode
