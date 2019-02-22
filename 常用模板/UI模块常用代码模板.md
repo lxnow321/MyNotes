@@ -31,8 +31,6 @@
 
 ## 2.按钮绑定
 
-	self:BindEvent(self.GiftBtn, closure(vm.OnGiftBtnClick, vm))
-
 	View:
 
 	BuildUI:
@@ -49,13 +47,11 @@ ViewModel:
 	self:BindValue(self, function()
 		local v = self.viewModel.property()
 		--...
-		end, 'jsutNeed')
+		end, 'justNeed')
 
 ## 4.SetActive显示绑定
 
 	self:BindValue(self.Panel,self.viewModel.showPanel,nil,{bindType = DataBind.BindType.SetActive, invert = false})
-
-
 
 
 ## 5.协程使用
@@ -88,3 +84,29 @@ ViewModel:
 		self.loader:Cancel()
 		self.loader = nil
 	end
+
+## 7.Dotween组件
+
+	self:BindValue(self, function()
+		local value = vm.startShowFlagImage() 
+		if value then
+			local colorDT = AQ.LuaComponent.Add(self.FlashImage.gameObject, AQ.Dotween.Dotween2D.DTColorImage)
+			colorDT:SetParams({
+				--{color = ...多次dotween},
+				{color = UnityEngine.Color.New(1, 1, 1, 0), delay = 0, duration = 1, 
+				func = DG.Tweening.Ease.Linear, updateType = DG.Tweening.UpdateType.Normal, isIndependentTimeScale = false ,
+				callback = function() 
+					--回调方法
+				end}
+			})
+			colorDT:OnEnable() //看是否需要，如果挂在组件的对象是从disable到enable状态，那么可以不用加。组件内的执行时通过OnEnable中调用的，如果SetParams之前已经调用OnEnable，那么不会生效，故需要手动再调用一次OnEnable方法。
+		end
+	end, 'justNeed')
+
+
+## Texture2D转Sprite
+
+local tex2D = Texture2D.New()
+local sprite = UnityEngine.Sprite.Create(tex2D, UnityEngine.Rect.New(0, 0, tex2D.width, tex2D.height), UnityEngine.Vector2.zero)
+
+注意:第二个参数rect数据是tex2D的纹理范围，如果rect中的宽高大小小于tex2D的实际纹理大小，那么转换出来的sprite只是tex2D的（0，0）位置到传入的宽高大小的范围的纹理。
