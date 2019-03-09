@@ -9,11 +9,11 @@ function XXMainView:GetResourcesPath()
 end
 
 function XXMainView:GetViewModel()
-    return AQ.ViewModel.XXModule.XXMainViewModel
+	return AQ.ViewModel.XXModule.XXMainViewModel
 end
 
 function XXMainView:GetRoot()
-    return 'POPUP'
+	return 'POPUP'
 end
 
 function XXMainView:BuildUI()
@@ -21,9 +21,11 @@ function XXMainView:BuildUI()
 end
 
 function XXMainView:BindValues()
-end	
+	local vm = self.viewModel
+end
 
 function XXMainView:BindEvents()
+	local vm = self.viewModel
 end
 
 function XXMainView:OnOpening()

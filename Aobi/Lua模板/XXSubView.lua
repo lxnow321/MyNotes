@@ -1,18 +1,18 @@
-module('AQ.UI.XXModule',package.seeall)
+module('AQ.UI.XXModule', package.seeall)
 
 XXSubView = class('XXSubView', AQ.UI.ListViewBase)
 XXSubView.name = 'XXSubView'
 
 function XXSubView:GetResourcesPath()
-	local resPath = {'prefabs/ui/xxmodule', 'XXSubView'}
-	return resPath
+    local resPath = {'prefabs/ui/xxmodule', 'XXSubView'}
+    return resPath
 end
 
-function XXSubView:Awake() 
-	local go = self.gameObject
+function XXSubView:Awake()
+    local go = self.gameObject
 end
 
-function XXSubView:BuildUI() 
+function XXSubView:BuildUI()
     local go = self.gameObject
 end
 
