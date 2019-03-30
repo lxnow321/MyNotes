@@ -4,8 +4,8 @@ XXMainView = class('XXMainView', AQ.UI.ViewBase)
 XXMainView.name = 'XXMainView'
 
 function XXMainView:GetResourcesPath()
-	local res_path = {'prefabs/ui/xxmodule', 'XXMainView'}
-	return res_path
+	local resPath = {'prefabs/ui/xxmodule', 'XXMainView'}
+	return resPath
 end
 
 function XXMainView:GetViewModel()
