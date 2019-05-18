@@ -1,0 +1,297 @@
+临时笔记本
+
+2017.12.17  星期日
+1.C#基础回顾
+
+中间语言：
+	不同的值类型和引用类型
+		值类型：变量直接存储其数据
+		引用类型：变量仅存储地址，对应的数据可以在该地址中找到
+
+		引用的实例总是存储在“托管堆”中，值类型一般存储在堆栈中（但如果值类型在引用类型中声明为字段，他们就内联存储在堆中）
+
+	
+
+
+2018.2.4  星期日
+
+
+
+2018.3.13  星期二
+
+20小时学习新技能
+
+1.分解技能
+将新的技能分解成许多小技能
+
+2.学习一定的理论知识
+通过书，或者课程，网络等学习一定的理论知识，但不用太多
+
+3.排除干扰
+排除外界的干扰，网络，电视，手机等
+
+4.练习至少20个小时
+至少坚持练习20个小时，坚持下去之后会发现不一样的精彩
+
+
+2018.3.28   星期三那
+
+1.Unity打包 4.x 和  5.x 的区别
+
+2.gc  场景剔除技术
+
+3.LOD
+
+4.NGUI事件和消息底层机制
+
+5.渲染
+
+6.frp函数式响应编程
+
+7.c#单例如何防止外部初始化
+
+8.drawcall
+
+9.protbuf 序列化和反序列化
+
+10.camera跟随
+
+11.骨骼数限制和面皮限制
+
+12.字体制作
+
+
+2018.4.8  星期日
+1.Unity字体是否有版权问题？
+
+
+2018.4.10 星期二
+
+1.游戏中的使用svn版本号作为Android.bundleVersionCode是什么？
+
+
+https://docs.unity3d.com/ScriptReference/PlayerSettings.Android.html
+
+versionCode - 一个整数，用作内部版本号。此数字仅用于确定一个版本是否比另一个版本更新，数字越大表示版本越新。这不是显示给用户的版本号；后者通过下面的 versionName 设置设定。
+该值是一个整数，其他应用可以通过编程方式对其进行评估，例如，检查升级或降级关系。您可以将该值设为您需要的任何整数，不过，您应确保应用的每个后续版本都使用一个较大的值。系统不强制执行此行为，但通常会针对后续版本增大此值。
+
+通常，发布应用的第一个版本时需要将 versionCode 设为 1，之后为每个发布版本单调增大此值，无论发布的是主版本还是次版本。这表示 versionCode 值不一定与用户可见的应用发布版本非常相似（请参阅下面的 versionName）。应用和发布服务不应向用户显示此版本值。
+
+警告：Google Play 允许的最大 versionCode 值为 2100000000。
+
+versionName - 一个字符串，用作显示给用户的版本号。可以作为原始字符串或对字符串资源的引用指定此设置。
+此值是一个字符串，您可以使用 <major>.<minor>.<point> 字符串或任何其他类型的绝对或相对版本标识符来描述应用版本。除了向用户显示之外，versionName 没有其他用途。
+
+
+
+2018.4.12  星期四
+
+1.iOS+Android原生开发什么意思?
+原生(native)开发一般是指用原生开发语言开发，原生开发语言就是开发整个系统时使用的编程语言。对于iOS来说就是Objective C，对于Android来说...不太好说，因为Android用的Linux内核是用C开发的，中间层的库是用C/C++开发的，但应用程序框架和应用程序都是用"Java"开发的，这个系统就是用一堆开源的工程拼起来的，真不太好说哪种语言算是它的原生开发语言。
+
+
+2.UnityEngine.AndroidJavaClass
+AndroidJavaClass unityClass = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+AndroidJavaObject activity = unityClass.GetStatic<AndroidJavaObject>("currentActivity");
+AndroidJavaObject telephonyManager = activity.Call<AndroidJavaObject>("getSystemService", "phone");
+string deviceId = telephonyManager.Call<string>("getDeviceId");
+了解一下具体代码含义以及android的原生代码。
+
+
+
+2018.5.29 星期二
+
+1.NGUI的Drawcall优化
+(1)减少不同材质之间的交叉
+
+(2)动静分离，将动态显示的独立出一个UIPanel
+问题：多个UIPanel是否对性能有影响
+
+
+2018.5.30 星期三
+
+1.gameObject 和 cacheGameObject的区别？
+
+2018.7.9  星期一
+
+1.NGUI的Panel的clip原理
+
+
+2.多重嵌套Panel的soft clip导致字体黑色问题
+
+
+2018.7.11 星期三
+
+1.PlayerSettings.SetIconsForTargetGroup 设置平台的icon。
+PlayerSettings定义了多个不同的参数用于最终unity工程生成。
+
+
+
+2.AssetBundle加载
+
+2.1 WWW加载
+(1).new WWWW()创建一个WWW对象，会在内存中创建一个比较大的WebStream，后续的AssetBundle.Load可直接在内存中运行。
+(2).使用WWW.LoadFromCacheOrDownload方法加载时，会将解压后的bundel存入磁盘中作为缓存，如果缓存中已存在则省略这一步。需要用到AssetBundle时则通过IO从磁盘中获取。
+
+2.2
+直接获取AssetBundle
+(1)AssetBundle.CreateFromeFile（已废弃）
+(2)AssetBundle.LoadFromeFile 或 AssetBundle.LoadFromeFileAsync   磁盘文件中加载
+(3)AssetBundle.LoadFromeMemory 或 AssetBundle.LoadFromeMemoryAsync  内存中加载
+(4)AssetBundle.LoadFromeStream 或 AssetBundle.LoadFromeStreamAsync   流中加载
+
+疑问：赐麓的各个项目中的Prefab，UI，用的都是同步加载，而model，animation等用的是异步压缩？
+LoadFromeFile和LoadFromeFileAsync本质上都支持所有的压缩类型，对于未压缩或者使用块压缩(LZ4即是块压缩)的都是直接读取，唯一的区别就是同步加载当未创建完成AssetBundle对象时，是不会直接返回的。也就是说会卡进程。
+
+
+
+2018.7.13 星期五
+
+1.ASTC  PVRTC ETC2 
+
+
+2018.7.16  星期一
+
+1.Unity Profiler 安卓真机调试
+两种方式：
+第一种，使用wifi连接
+(1)Build Setting中选中Development Build和Autoconnect Profiler
+(2)导出apk，安装到android测试机上
+(3)电脑与android机连接同一个wifi
+(4)打开android机上的应用，并打开Unity的Profiler，选择Active Profiler下来菜单中对应的android机器即可
+
+
+第二种，使用adb连接
+(1)使用安卓线连接电脑和手机，确认adb可识别手机，在控制台使用命令(adb devices),看不见时打开手机的开发者模式
+(2)Build Setting检查配置，选择Build & Run直接生成apk并安装到手机上（如果安装失败，那就只生成，手动去安装）
+(3)启动手机应用，打开Unity Profiler
+(4)选择AndroidProfiler(ADB@127.0.0.1:34999)（如果是手动安装，或者想要调试其他设备，可在控制台输入adb forward tcp:34999 localabstract:Unity-com.test.test） com.test.test为包名，不同包名需要替换。
+如果有防火墙，确保54998-55511的端口打开，这些端口需要被Unity profilling用到。
+
+第一种方式连接正常，第二方式还在测试中，还不知道为什么没有连接成功，adb已识别了我的手机，Build&Run无法正确安装到我的手机上，只能手动安装。现在还不确定是不是因为端口问题导致无法连接成功。
+
+
+
+2.MemroyProfiler工具的使用
+需要对哪个项目做采集，需要将这个插件安装到对于的项目中去。可从网站上下载下来工程，导出成unitypackage，然后安装到对于的项目中去。一般不会有报错，有可能有一些引用公用类会重复定义，可删除对应的类。
+
+该工具可以比较直观的截取的那一刻的内存占用情况。Unity也自带有，使用Profiler中的Memroy，并选择Detailed 中的Take Sample 即可截取当前时刻的内存占用情况。
+
+暂时都还只是在Editor模式下进行测试，还没有在真机上调试。
+
+问题：MemroyProfiler工具，每次截取内存快照时，会导致mono的内存分配明显升高，可能有内存泄漏的问题，待考证。
+
+
+3.Unity Profiler 中的 Memory
+
+Used Total表示当前使用的内存总量， Reserved Total表示分配保留的内存总量。
+
+
+4.windows 查看端口被占用的dos指令
+
+netstat -ano  显示当前活动的连接的 端口相关
+netstat -ano|findstr "49157"  显示49157端口的活动连接，这里可看到PID
+tasklist|findstr "2720" 这里是通过2720的PID查看具体的任务名称
+taskkill /f /t /im Tencentdl.exe 结束某个进程
+
+
+
+5.继承AssetPostprocessor类，可以导入资源时在import pipeline和运行脚本前后设置钩子。
+
+
+
+2018.7.17  星期二
+
+1.Selection.activeTransform 选中inspector中的对象
+Selection.activeObject 返回实际的对象选择
+
+
+2.UIPanel, UIWidget,
+
+UIPanel中维护这一个其包含的所有UIWidget的列表widgets。UIPanel根据mRebuild值来决定是否重建所有drawcall，然后调用方法FillAllDrawCAlls用于重建。注意，这事会调用调用SortWidgets，通过对比widgets的depth以及material来进行排序，然后再按照是否相同材质（material），贴图(mainTexture)，shader来创建或合并drawcall。故有如下优化：优化1：规划depth，相同材质球，material和shader的ui，尽量处于一depth段。保证这些ui可以合并成同一个drawcall。当widget disable时，会调用panel.RemoveWidget，将其从panel的widgets列表中移除，并将该widget的drawcall标记为dirty，UIPanel在LateUpdate中会循环判断所有drawcall，如有dirty，判断该drawcall是否还有其他widget使用，如没有，则删除drawcall。当widget enabel时，会调用到UIPanel.AddWidget，该方法中会判断该widget是否能加入到已有的drawcall中，如果不能，则需要重建一个drawcall。故有如下优化：优化2：动静分离，尽量减少widget的disable和enabel，将动态显示的ui划分到一个UIPanel下，减少其因重建带来的消耗。
+
+
+
+2018.7.18  星期三
+
+1.制作HUD,只需要挂载一个脚本UIFollowTarget，将所需要跟随的角色transform和camera等拖入其中即可。
+
+2.Unity Scene窗口中,Persp表示透视视角，所看到的物体有远近之分，而Iso模式为平行视角，看到的物体没有远近之分
+
+3.Animation和Animator ，Animation用于控制一个单独的动画，而Animator则是多个Animation的状态控制器，控制多个Animation的动画切换。
+
+
+4.Normal Map法线贴图：用于凸显模型的凹凸。
+
+
+2018.7.19 星期四
+
+1.C#语法Where new()。
+new约束了所使用的泛型必须具有无参构造函数。
+
+
+2018.7.21  星期六
+
+1.TexturePacker使用命令行打包图集
+TexturePacker --format unity --sheet a.png --data a.txt imgs/   
+还没找到能导出*.tps配置的方法
+
+
+2018.7.30  星期一
+1.Debug.Log中，在字符串中加入<color=#ff0000>内容</color>可以设置在console中的log输出颜色。
+
+
+2018.8.3  星期五
+
+1.win10可在任务管理器中的“启动”选项也去禁用开机启动项
+其他系统可以通过cmd->msconfig打开设置面板进行启动项禁用
+
+2.图集的重复检测，原来打算用文件的md5值来判断，后来发现了别人的代码用文件的长度来判断，这样虽然不够严谨，其实绝大部分情况也还是比较准确的，满足使用即可。
+
+2018.8.4  星期六
+
+1.DateTime.Ticks 单位 为 1 / 10**7  秒, 1/10 微秒
+
+2018.8.7  星期二
+1.tranform和cachedTransform
+cachedTransform实则为transform的引用缓存。直接访问transform要比缓存transform后使用cachedTransform的开销要大。故如果需要多次频繁的用到transform时，则使用cachedTransform会更好一些。
+public Transform cachedTransform
+{
+	get
+	{
+		if (mTrans == null)
+			mTrans = transform;
+		return mTrans;
+	}
+}
+其他cachedXXX亦同。
+
+
+2018.8.14  星期二
+
+1.Animator.GotoState: State could not be found
+当Unity出现该异常时，可能是animator播放的动画名在AnimationController中不存在导致，将动画名称与AnimationController中已存在的动画名保持一致即可。
+
+
+2018.9.4  星期二
+
+1.Android 使用adb logcat 指令可以在控制台查看android日志。
+adb logcat >d:\test.txt，可将日志输出到d:\test.txt中
+
+
+2018.9.6  星期四
+
+1.查看Android设备的CPU架构信息，可以使用命令来完成： 
+1、adb shell 
+2、cat /proc/cpuinfo
+
+
+
+
+2018.10.9  星期二
+
+1.保存战斗回合数据
+
+ SimulationBattleManager中，使用System.Delegate.CreateDelegate创建了两个委托方法mReadMessage和mWriteMessage，分别是通过反射从Assembly-CSharp-Editor下获取ConsoleEditorEx中的ReadToJsonByPath和WriteMessage2方法。（这里有个疑问就是Editor下的类可以访问Assets/Script下的类方法，而反之则需要通过反射才可以访问）
+注意：这里的ConsoleEditorEx中使用的Json.Net插件（ 
+Json.NET is a popular high-performance JSON framework for .NET），业务代码内部使用的LITJson

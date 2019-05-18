@@ -28,6 +28,11 @@ StreamWriter sw = new StreamWriter(fs);
 sw.Write(str);
 sw.Close();
 
+File.ReadAllText(filePath, [Encoding,]);
+例：
+string str = File.ReadAllText(@"F:\test.txt", System.Text.Encoding.Default);
+
+
 
 (2)直接写入
 

@@ -1,0 +1,52 @@
+Unity优化整理
+
+1.认识UnityProfiler
+
+CPU Usage Are
+
+Hierarchy:
+	Total :  表示当前总耗时百分比，包含其子函数调用 
+	Self ： 表示当前自身方法耗时百分比，不包含子函数调用（注意，百分比是整体百分比，跟Total百分比分母一致，而不是占Total的百分比）
+	Calls : 方法调用次数
+	GC Alloc ： 当前帧内存分配多少
+	Time ms  : 总耗时时间， 包含子函数调用耗时
+	Self ms  ：自身方法耗时，不包含子函数调用耗时
+	三角：猜测应该是一些unity可检测出的异常性能警告，按照警告多少进行排序，如出现需要进行修复。
+
+Rendering Area
+
+Memory Area
+
+SimpleView
+ Used Total : 已使用的内存总量
+ Reserved Total : 已分配的内存总量
+ Unity:由native unity代码中分配的内存
+ Mono: 托管代码使用的堆内存大小
+ GixDriver: 预计在Texture,Rendertargets,shaders和Meshdata上使用的内存
+ FMOD : 媒体设备预计使用的内存
+ Profiler :  作为profilerdata使用的内存
+
+Detailed View
+ 
+
+
+2.工具使用
+Profiler.BeginSample("test")
+xx
+Profiler.EndSample()
+可以更细化方法该语句块间的脚本profiler
+
+
+
+
+foreach使用
+Unity5.5才修复foreach会导致GC alloc问题，此前的版本都有这个问题。某些接近的版本可能有补丁进行修复。
+Unity5.4.4f1测试 List<int> List<class> int[] class[]
+for语句 都不会产生gc alloc
+foreach语句 List<int> list<class> ArrayList会产生一个40b gc alloc；而int[] class[]不会产生
+GetEnumerator语句 int[] class[]会产生一个32b gc alloc  ArrayList会产生一个40b gc alloc; 而List<int> list<class>不会
+
+
+
+LOD：
+LOD技术即Levels of Detail的简称，意为多细节层次。LOD技术指根据物体模型的节点在显示环境中所处的位置和重要度，决定物体渲染的资源分配，降低非重要物体的面数和细节度，从而获得高效率的渲染运算。

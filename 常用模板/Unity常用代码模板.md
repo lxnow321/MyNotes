@@ -30,10 +30,10 @@ public static void SearchAssets()
 {
 	string searchPath = "Assets\\...";
 	string[] guids = AssetDatabase.FindAssets("t:Prefab", new string[]{searchPath,});
-	foreach (guid in guids)
+	foreach (var guid in guids)
 	{
 		string assetPath = AssetDatabase.GUIDToAssetPath(guid);
 		var prefab = AssetDatabase.LoadAssetAtPath(assetPath, typeof(GameObject)) as GameObject; //获取对应asset
-		var importer = AssetImpoter.GetAtPath(assetPath); //获取对应assetimporter
+		var importer = AssetImporter.GetAtPath(assetPath); //获取对应assetimporter
 	}
 }

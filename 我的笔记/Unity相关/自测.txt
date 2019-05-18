@@ -1,0 +1,9 @@
+纹理压缩选择
+
+android 
+ETC1  支持OpenGL ES 2.0 不支持alpha 需要将rgb与alpha通道分离成两张贴图，在shader中对两张贴图进行采样合并。纹理长宽可不一致，但需要是2的N次幂。
+ETC2  只支持OpenGL ES 3.0 支持alpha。那么OpenGL ES 2.0的机型运行将付出更大代价，ETC2不支持将会转换成RGBA32，使得纹理加载更慢。纹理长宽可不一致，但需要是2的N次幂
+
+iOS 
+PVRTC 2/4  PowerVR GPU独有的硬件压缩方式。支持alpha，但压缩后失真严重，故还是分离alpha会效果更好一些。纹理长宽需要一致，且为2的N次幂
+ASTC  支持alpha，无纹理长宽限制。但支持A8架构以上的机型，如iphone6/plus及以上。如果放弃iphone6以下的机型，可选择使用。
