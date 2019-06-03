@@ -108,6 +108,25 @@
 	):AutoUnloadBundle(true):Start()
 	self.loader = loader
 
+
+	--加载bundle，再加载里面的单个资源
+	loader:AddTask(
+        'texture/uiatlas/dynamic/union',
+        function(task, bundle, err)
+            if bundle then
+                bundle:LoadAssetAsync(
+                    'huangguan_' .. self.rank,
+                    typeof(UnityEngine.Sprite),
+                    function(sprite, err)
+                        if sprite then
+                            self.huangguanSprite(sprite)
+                        end
+                    end
+                )
+			end
+		end
+	):AutoUnloadBundle(true):Start()
+
 	disepose调用:
 	if self.loader then
 		self.loader:UnloadAllBundles()
@@ -196,6 +215,9 @@ UnionService:removeListener(UnionService.SucGetPointMemberListReplyEvent,self.On
             string.format('你的战队贡献增加了%d点')
         }
     )
+
+	UIManager.tipsEntry:ShowArrTips({string.format('信息')})
+
 
 ## 显示物品获得tips
 
