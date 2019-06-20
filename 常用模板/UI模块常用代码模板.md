@@ -18,23 +18,26 @@
 		end
 	end
 
-## BindValues 绑定
 
-	self:BindValue(self.Icon, self.viewModel.icon, "overrideSprite")  --绑定按钮
-	self:BindValue(self.Btn, closure(self.viewModel.OnBtnClick, self.viewModel))  --绑定按钮事件
-
-
-## 基本属性绑定
-
+## 基本属性绑定/BindValue
 
 	BindValues:
-	self:BindValue(self.TabText, self.viewModel.txtColor, "color") //颜色
-	self:BindValue(self.TabText, self.viewModel.txtText, "text") //文字
-	self:BindValue(self.Icon, self.viewModel.icon, "overrideSprite") //精灵
-	self:BindValue(self.Icon, self.viewModel.iconEnable, "enabled") //组件enable
+
+	self.Name = goutil.GetText(go, 'Name')
+
+	self:BindValue(self.Name, vm.NameText, "text") //文字
+	self:BindValue(self.Name, vm.NameColor, "color") //颜色
+
+	self.Img = goutil.GetImage(go, 'Img')
+	self:BindValue(self.Img, self.viewModel.Img, "overrideSprite") //精灵
+	self:BindValue(self.Img, self.viewModel.ImgEnabled, "enabled") //组件enable
+	self:BindValue(self.Img, vm.ImgFillAmount, 'fillAmount') --绑定fillAmount
+
+	self.SanjiaoRect = goutil.GetRectTransform(self.Center, 'SortGroup/Sanjiao')
+	self:BindValue(self.SanjiaoRect, vm.SanjiaoRatation, 'localRotation')
 
 
-## 按钮绑定
+## 基本事件绑定/BindEvent
 
 	self:BindEvent(self.GiftBtn, closure(self.viewModel.OnGiftBtnClick, self.viewModel))
 	self:BindEvent(self.GiftBtn, function()
@@ -42,7 +45,7 @@
 		end)
 
 
-## 功能刷新绑定
+## 功能刷新绑定/Function
 
 	self:BindValue(self, function()
 		local v = self.viewModel.property()
@@ -56,7 +59,7 @@
 
 ## SetActive显示绑定
 
-	self:BindValue(self.Panel,self.viewModel.showPanel,nil,{bindType = DataBind.BindType.SetActive, invert = false})
+	self:BindValue(self.Panel, vm.showPanel,nil,{bindType = DataBind.BindType.SetActive, invert = false})
 
 ## LoadChildPrefab 子UI绑定
 	
@@ -72,8 +75,9 @@
 		end
 	)
 
-## 重新绑定（新建viewModel重新绑定到旧的view中，用于对象列表复用view情况）
+## 重新绑定/reBinding
 
+	（新建viewModel重新绑定到旧的view中，用于对象列表复用view情况）
     local idx = 0 //注意：此处idx从0开始
     for item in ilist(self.collections())
 		local newVM = XXViewModel.new()
@@ -82,7 +86,7 @@
 	end
 
 
-## 协程使用
+## 协程使用/Coroutine
 
     self.co = coroutine.start(function()
 		coroutine.wait(0.1) --秒
@@ -92,13 +96,12 @@
 	end)
 
 
-## 资源加载
+## 资源加载/Loader
 
     local loader = LoaderService.AsyncLoader("xxx Load 说明")
-	local btnIconPath = "资源路径"
 	loader:AddTask(
-		btnIconPath,
-		self.paramData["icon"],
+		'资源路径',
+		'资源名称',
 		typeof(UnityEngine.Sprite), --typeof(UnityEngine.GameObject)
 		function(task, icon, err)
 			self.icon(icon) -- instGo = Unityengine.GameObject.Instantiate(go)
@@ -129,7 +132,7 @@
 
 	disepose调用:
 	if self.loader then
-		self.loader:UnloadAllBundles()
+		self.loader:UnloadAllBundles() --看情况加，一般不需要
 		self.loader:Cancel()
 		self.loader = nil
 	end
@@ -161,7 +164,7 @@ local sprite = UnityEngine.Sprite.Create(tex2D, UnityEngine.Rect.New(0, 0, tex2D
 注意:第二个参数rect数据是tex2D的纹理范围，如果rect中的宽高大小小于tex2D的实际纹理大小，那么转换出来的sprite只是tex2D的（0，0）位置到传入的宽高大小的范围的纹理。
 
 
-## 事件注册
+## 事件注册/Event
 
 SceneService:addListener(SceneService.OnSceneLoadedEvent, instance.OnSceneLoaded)
 SceneService:removeListener(SceneService.OnSceneLoadedEvent, instance.OnSceneLoaded)
@@ -239,7 +242,7 @@ UnionService:removeListener(UnionService.SucGetPointMemberListReplyEvent,self.On
 	toggleCallback:勾选后点击确定的回调
 ]]
 
-    UIManager.dialogEntry:ShowConfirmDialog( msg,confirmCallback,confirmName,toggleName,toggleCallback)
+    UIManager.dialogEntry:ShowConfirmDialog(msg,confirmCallback,confirmName,toggleName,toggleCallback)
 
 ## 确认取消弹窗
 
@@ -271,13 +274,149 @@ local key = string.format('%d_%d', Level, BonusId)
 instance.unionDungeonBonusConfig[key]
 
 
-## 图片打灰/修改灰色材质球
+## 图片打灰/修改灰色材质球/Color
 
 
-self:BindValue(self.OnlineFlag, vm.onlineImgMaterial, 'material')
+	self:BindValue(self.OnlineFlag, vm.onlineImgMaterial, 'material')
 
-instance.GRAY_COLOR =  Color.New(100/255,100/255,100/255,1)
-instance.GARY_MATERIAL = AQ.UIEffectUtil.CreateGray(instance.GRAY_COLOR)
+	instance.GRAY_COLOR =  Color.New(100/255,100/255,100/255,1)
+	instance.GARY_MATERIAL = AQ.UIEffectUtil.CreateGray(instance.GRAY_COLOR)
 
-绑定Image的的material属性，修改material属性即可
-self.onlineImgMaterial(GARY_MATERIAL)
+	绑定Image的的material属性，修改material属性即可
+	self.onlineImgMaterial(GARY_MATERIAL)
+
+
+## 无线滚动/ScrollView
+
+	self.cellsContentScroll = AQ.InfiniteScrollView.Get(scrollGo)
+	self:LoadChildPrefab(
+		'MessageBoxCellView',
+		function(task, prefab, cellCls)
+			self:BindValue(
+				self.cellsContentScroll,
+				vm.cellCollection,
+				nil,
+				{
+					bindType = DataBind.BindType.ScrollRectCollection,
+					mainView = self,
+					cellCls = cellCls,
+					prefab = prefab,
+					params = {DataBind.ScrollDir.Vertical, 190, 245, -12, -20, 5}
+					--width,height,widthSpacing,heightSpacing,perlineNum
+					--宽，高，宽空隙，高空隙,每行个数
+				}
+			)
+		end
+	)
+ 
+ 注意：
+
+* InfiniteScrollView组件是自动加上去的，Prefab上的Content不需要加ContentSizeFitter以及LayoutGroup等。
+* InfiniteScrollVie组件永远是将子UI左贴齐的，所以调整ScrollView窗口大小时注意调整好
+
+
+## 事件监听/addListener
+
+	--对应Service.Init()方法中，必须扩展NotifyDispatcher，否则不具备监听特性
+	NotifyDispatcher.extend(instance)
+
+	--监听方法主体
+    HouseService:addListener(HouseService.QueryAllBoxMessageReplyEvent, self.OnQueryAllBoxMessageReplyEvent, self)
+
+	HouseService:removeListener(HouseService.QueryAllBoxMessageReplyEvent, self.OnQueryAllBoxMessageReplyEvent, self)
+
+
+## InputFiled实现限制文字数量
+
+	BindUI:
+	self.MsgInputField = goutil.GetInputField(self.Panel, 'MsgInputField')
+
+	BindValues:
+	vm.MsgInputField = self.MsgInputField
+
+	BindEvent:
+	self:BindEvent(self.MsgInputField, closure(vm.OnMsgInputFieldValueChanged, vm))
+
+	ViewModel:
+	function MessageBoxOperationViewModel:OnMsgInputFieldValueChanged(value)
+		local err, content = PlayerService.CheckNameInputField(value)
+		local validContent = err and content or value
+		if StringUtil.UTF8lenLong(validContent) > self.MsgLength then
+			validContent = StringUtil.InterceptLong(validContent, self.MsgLength)
+		end
+		self.MsgInputField.text = validContent
+	end
+
+## 时间格式/time/os.date
+
+os.date('时间：%Y.%m.%d %H:%M:%S', self.time)
+os.date(format, time)
+format以'!'开头 表示世界协调时间
+
+
+
+os.date('*t') 返回一个table，包含year,month,day,hour,min,sec,wday,yday,isdst字段
+
+如果format不是'*t'，则格式字符串与 C方法的strftime规则相同，参考：http://www.cplusplus.com/reference/ctime/strftime/
+
+os.date() 与 os.date('%c')相同，返回一个时间字符串 如：03/23/19 14:46:20 （表示2019.3.23）
+
+## 定时器/Timer
+
+	Timer.New(
+	function()
+		--回调
+	end,
+	0.01, --执行间隔时间
+	-1, -- -1表示循环，>0 表示执行次数
+	true  --scale是否受时间scale影响
+
+例：
+
+>循环执行
+
+self.timer = Timer.New(function()
+end,
+1, -1, true)
+
+> 执行一次
+
+self.timer = Timer.New(function()
+end,
+1, 1, true)
+
+self.timer:Start() 
+
+self.timer:Stop()
+
+
+## GetParentViewModelByName
+
+local growUpGuideMainViewModel = self:GetParentViewModelByName("GrowUpGuideMainViewModel")
+
+
+## 判断材料或物品是否充足/CheckMaterialIsEnough
+
+MaterialService.CheckMaterialIsEnough(materialType, id, num)
+
+## 跳转充值界面
+
+ChargeService.UI_ID_XINGBI = 1 --星币
+ChargeService.UI_ID_BLUE_STONE = 2  --蓝宝石
+ChargeService.UI_ID_MONTH_CHARD = 3  --月卡
+
+ChargeService.OpenViewById(ChargeService.UI_ID_XINGBI) --星币充值
+
+
+## pm头像/亚比头像/宠物头像
+
+local modelId = SkinService.ConvertPetModelId(raceId)
+AssetLoaderService.PetIcon(
+	AssetLoaderService.PET_ICON_90_90,
+	modelId,
+	function(icon)
+		if not goutil.IsNil(icon) then
+			self.PMIcon(icon)
+		end
+	end
+)
