@@ -399,6 +399,13 @@ local growUpGuideMainViewModel = self:GetParentViewModelByName("GrowUpGuideMainV
 
 MaterialService.CheckMaterialIsEnough(materialType, id, num)
 
+--星币不足
+if MaterialService.XingBiIsEnough(self.costCount) then
+	MountService.ActiveMountRequest(self.mountRaceId, ACTIVE_TYPE_XINGBI, 0, 0, 0)
+else
+	UIManager.dialogEntry:ShowConfirmDialog('星币不足，无法购买')
+end
+
 ## 跳转充值界面
 
 ChargeService.UI_ID_XINGBI = 1 --星币
@@ -420,3 +427,228 @@ AssetLoaderService.PetIcon(
 		end
 	end
 )
+
+## PM/亚比模型加载
+
+* AssetLoaderService.PetGO  接口加载
+* PetPackage 亚比背包的分布加载
+
+* SkinService.LoadSkinPrefab 加载模型
+
+	local skinId = AQ.PetPackage.PetPackageConfigSetting.GetDefaultSkinId(raceId)
+
+	local prefabName = AQ.PetPackage.PetPackageConfigSetting.GetModelPrefabName(skinId)
+	local animName = AQ.PetPackage.PetPackageConfigSetting.GetModelAnimName(skinId)
+
+
+## Dotween使用
+
+if self.heightTween then
+	self.heightTween:Kill(true)
+	self.heightTween = nil
+end
+self.heightTween = DG.Tweening.DOTween.To(a, b, targetHeight, 0.3)
+self.heightTween:OnUpdate(function()
+	self.subTabSizeDelta(Vector2(CELL_SIZE.x, currentHeight))
+	self.sizeDelta(Vector2(BACKGROUND_SIZE.x, BACKGROUND_SIZE.y +  currentHeight))
+end)
+
+self.heightTween:OnComplete(function()
+	self.subTabSizeDelta(Vector2(CELL_SIZE.x, currentHeight))
+	self.sizeDelta(Vector2(BACKGROUND_SIZE.x, BACKGROUND_SIZE.y +  currentHeight))
+	self.heightTween = nil
+	self.reActivateParentPT({})
+end)
+
+## ToggleGroup
+可在Toggle按钮父节点（其他也可以）挂在一个ToggleGroup脚本组件，然后将该节点拖拽至Toggle控件中的Group即可。同一个ToggleGroup只会有一个Toggle组件被选中
+
+
+## 拖拽/移动
+
+准备：
+1. 拖拽图标上需要挂在 UIDragTrigger 和 UIClickTrigger脚本
+2. 父界面需要增加一个用于拖拽显示的图标（跟随鼠标移动）
+
+View:
+
+function MountActivationPMCellView:BindEvents()
+	local vm = self.viewModel
+
+	--点击按下事件
+	self:BindEvent(
+		self.PMIconClickTrigger,
+		function(eventData)
+			print('MountActivationPMCellView PointerDown', self.gameObject)
+			self.clickDown = true
+			self.startDragging = false
+
+			vm:SetMovingPmPosition(self.PMIconRectTransform, eventData)
+			vm:ShowMovingPm(true)
+		end,
+		eventtype.PointerDown
+	)
+
+	--点击弹起事件
+	self:BindEvent(
+		self.PMIconClickTrigger,
+		function(eventData)
+			print('MountActivationPMCellView PointerUp', self.gameObject)
+			if not self.clickDown or self.startDragging then
+				return
+			end
+
+			vm:ShowMovingPm(false)
+		end,
+		eventtype.PointerUp
+	)
+
+	--开始拖拽事件
+	self:BindEvent(
+		self.PMIconDragTrigger,
+		function(eventData)
+			print('MountActivationPMCellView BeginDrag', self.gameObject, self.clickDown)
+			if not self.clickDown then
+				return
+			end
+			self.startDragging = true
+			vm:SetMovingPmPosition(self.PMIconRectTransform, eventData)
+		end,
+		eventtype.BeginDrag,
+		nil,
+		nil,
+		true
+	)
+
+	--拖拽中事件
+	self:BindEvent(
+		self.PMIconDragTrigger,
+		function(eventData)
+			print('MountActivationPMCellView Drag', self.gameObject, self.clickDown)
+			if not self.clickDown then
+				return
+			end
+			vm:SetMovingPmPosition(self.PMIconRectTransform, eventData)
+		end,
+		eventtype.Drag,
+		nil,
+		nil,
+		true
+	)
+
+	--结束拖拽事件
+	self:BindEvent(
+		self.PMIconDragTrigger,
+		function(eventData)
+			print('MountActivationPMCellView EndDrag', self.gameObject, self.clickDown)
+			if not self.clickDown then
+				return
+			end
+			vm:EndDragHandler(eventData)
+			vm:ShowMovingPm(false)
+			self.clickDown = false
+		end,
+		eventtype.EndDrag,
+		nil,
+		nil,
+		true
+	)
+end
+
+
+ViewModel:
+
+--设置移动位置
+
+	function MountActivationPMCellViewModel:SetMovingPmPosition(diRectTransform, eventData)
+		local success, position =
+			UnityEngine.RectTransformUtility.ScreenPointToWorldPointInRectangle(
+			diRectTransform,
+			eventData.position,
+			eventData.pressEventCamera,
+			nil
+		)
+		if success then
+			self.pParentViewModel:MoveMovingPmUI(position)
+		end
+	end
+
+--显示拖拽图标
+
+	function MountActivationPMCellViewModel:ShowMovingPm(show)
+		if show then
+			self.pParentViewModel:ShowMovingPm(true, self.pmRaceId)
+		else
+			self.pParentViewModel:ShowMovingPm(false)
+		end
+	end
+
+--结束拖拽
+
+	function MountActivationPMCellViewModel:EndDragHandler(eventData)
+		local success, petInfoGO = self.CheckIsMountActivationCell(eventData.pointerCurrentRaycast.gameObject)
+		if success then
+			local view = AQ.LuaComponent.Get(petInfoGO, AQ.UI.Mount.MountActivationCellView)
+			if view then
+				local receivedVM = view.viewModel
+				if receivedVM then
+					self.pParentViewModel:PutPM(receivedVM:GetIdx(), self.pmId, self.pmRaceId)
+				end
+			end
+		end
+	end
+
+--判断是否是拖拽目标
+
+	function MountActivationPMCellViewModel.CheckIsMountActivationCell(receiveGO)
+		if not receiveGO or receiveGO.name ~= 'PMIcon' then
+			return false
+		end
+
+		local parent = receiveGO.transform.parent
+		if not parent and not parent.parent then
+			return false
+		end
+
+		return true, parent.parent.gameObject
+	end
+
+## 亚比头像/种类图标/亚比图鉴
+
+	--亚比头像
+	local modelId = SkinService.ConvertPetModelId(raceId, skinId)
+	AssetLoaderService.PetIcon(
+		AssetLoaderService.PET_ICON_90_90,
+		modelId,
+		function(icon)
+			if not goutil.IsNil(icon) then
+				self.PMIcon(icon)
+			end
+		end
+	)
+
+	--亚比种类图标
+	local typeId = CommonSetting.PMSpiritConfig[pmRaceId].Type0
+	或者
+	local typeId = pmInfo.pmType
+	AssetLoaderService.TypeIcon(
+		AssetLoaderService.TYPE_ICON_36_36,
+		typeId,
+		function(icon)
+			if not goutil.IsNil(icon) then
+				self.FamilyIcon(icon)
+			end
+		end
+	)
+
+	--亚比图鉴
+	local modelId = SkinService.ConvertPetModelId(pmRaceId, pmSkinId)
+	AssetLoaderService.PetIcon(
+		AssetLoaderService.PET_ICON_144_208,
+		modelId,
+		function(icon)
+			if not goutil.IsNil(icon) then
+				self.MountImage(icon)
+			end
+		end
+	)
