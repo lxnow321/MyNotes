@@ -104,8 +104,9 @@
 		'资源名称',
 		typeof(UnityEngine.Sprite), --typeof(UnityEngine.GameObject)
 		function(task, icon, err)
-			self.icon(icon) -- instGo = Unityengine.GameObject.Instantiate(go)
-
+			if not goutil.IsNil(icon) then
+				self.icon(icon) -- instGo = Unityengine.GameObject.Instantiate(go)
+			end
 			self.loader = nil
 		end
 	):AutoUnloadBundle(true):Start()
@@ -258,6 +259,39 @@ UnionService:removeListener(UnionService.SucGetPointMemberListReplyEvent,self.On
 
     UIManager.dialogEntry:ShowConfirmCancelDialog( msg,confirmCallback,cancelCallback,confirmName,cancelName,toggleName,toggleCallback )
 
+	local DoXingbiFill = function()
+		if MaterialService.XingBiIsEnough(xingbiCost) then
+			--星币足够
+			--TODO:DO
+		else
+			--星币不足
+			UIManager.dialogEntry:ShowConfirmCancelDialog(
+				string.format('星币不足，是否前往充值?'),
+				function()
+					ChargeService.OpenViewById(ChargeService.UI_ID_XINGBI)
+				end
+			)
+		end
+	end
+
+	if not RosefinchService.IgnoreXingbiFillDialoge then
+		UIManager.dialogEntry:ShowConfirmCancelDialog(
+			string.format('是否消耗%s星币翻开卡牌', xingbiCost),
+			function()
+				DoXingbiFill()
+			end,
+			nil,
+			'确定',
+			'取消',
+			'本次登陆不再提醒',
+			function()
+				RosefinchService.IgnoreXingbiFillDialoge = true
+			end
+		)
+	else
+		DoXingbiFill()
+	end
+
 ## 导表解析
 
 	local unionTaskConfig = require("Commons/Config/uniontask/UnionTaskConfig")
@@ -361,15 +395,25 @@ os.date('*t') 返回一个table，包含year,month,day,hour,min,sec,wday,yday,is
 
 os.date() 与 os.date('%c')相同，返回一个时间字符串 如：03/23/19 14:46:20 （表示2019.3.23）
 
+
+--剩余时间格式 xx:xx:xx
+leftTime = 1563520241
+local hour = math.floor(leftTime / 3600)
+local min = math.floor((leftTime - hour * 3600) / 60)
+local sec = leftTime - hour * 3600 - min * 60
+str = string.format('%02d:%02d:%02d', hour, min, sec)
+
+
 ## 定时器/Timer
 
 	Timer.New(
-	function()
-		--回调
-	end,
-	0.01, --执行间隔时间
-	-1, -- -1表示循环，>0 表示执行次数
-	true  --scale是否受时间scale影响
+		function()
+			--回调
+		end,
+		0.01, --执行间隔时间
+		-1, -- -1表示循环，>0 表示执行次数
+		true  --scale是否受时间scale影响
+	)
 
 例：
 
@@ -395,16 +439,24 @@ self.timer:Stop()
 local growUpGuideMainViewModel = self:GetParentViewModelByName("GrowUpGuideMainViewModel")
 
 
-## 判断材料或物品是否充足/CheckMaterialIsEnough
+## 判断材料或物品是否充足/CheckMaterialIsEnough/星币不足
 
 MaterialService.CheckMaterialIsEnough(materialType, id, num)
 
 --星币不足
-if MaterialService.XingBiIsEnough(self.costCount) then
-	MountService.ActiveMountRequest(self.mountRaceId, ACTIVE_TYPE_XINGBI, 0, 0, 0)
+if MaterialService.XingBiIsEnough(xingbiCost) then
+	--星币足够
+	--DO
 else
-	UIManager.dialogEntry:ShowConfirmDialog('星币不足，无法购买')
+	--星币不足
+	UIManager.dialogEntry:ShowConfirmCancelDialog(
+		string.format('星币不足，是否前往充值?'),
+		function()
+			ChargeService.OpenViewById(ChargeService.UI_ID_XINGBI)
+		end
+	)
 end
+
 
 ## 跳转充值界面
 

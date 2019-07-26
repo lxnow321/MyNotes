@@ -12,6 +12,8 @@
    FROM table_name                  //数据表
    WHERE column_name operator value //条件
 
+   select distinct ... //去重查询
+
 * SELECT * FROM table; 查询table中的所有
 * SELECT * FROM userInfo WHERE userId = 1001; 查询table表中userId为1001的数据
   
