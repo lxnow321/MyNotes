@@ -36,6 +36,10 @@
 	self.SanjiaoRect = goutil.GetRectTransform(self.Center, 'SortGroup/Sanjiao')
 	self:BindValue(self.SanjiaoRect, vm.SanjiaoRatation, 'localRotation')
 
+	--scrollview窗口移动  Vector2(水平，垂直)
+	self:BindValue(self.BigListScrollView, vm.bigListScrollViewPosition, 'normalizedPosition')
+
+
 
 ## 基本事件绑定/BindEvent
 
@@ -186,7 +190,7 @@ UnionService:removeListener(UnionService.SucGetPointMemberListReplyEvent,self.On
         }
         table.insert(dataList, data)
     end
-    UIManager:Open('ShopItemDetailView', dataList, '可能获得', '奖励预览', true)
+    UIManager:Open('ShopItemDetailView', dataList, '奖励预览', '框内描述', false)
 
 ## 宝箱领取
 
@@ -704,3 +708,9 @@ ViewModel:
 			end
 		end
 	)
+
+
+## PlayerPrefs
+
+PlayerPrefs.GetInt(KEY, 0)
+PlayerPrefs.SetInt(KEY, 1)
