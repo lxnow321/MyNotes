@@ -1,6 +1,17 @@
 **UI模块常用代码模板**
 =======================
 
+
+## 底板大小/BG
+
+1656 * 960
+
+## SearchIllegalTextureContext.txt修改
+
+GetLongYing:GetLongYing:GetLongYing/GetLongYingMain;GetLongYing/GetLongYingGame;GetLongYing/GetLongYingFastPlan:
+
+预制文件夹：默认检测的文件夹名：用到的其他图集文件夹名（用封号';'隔开）
+
 ## BuildUI UI获取
 
 	self.gameObject                       获取自身gameObject
@@ -38,6 +49,10 @@
 
 	--scrollview窗口移动  Vector2(水平，垂直)
 	self:BindValue(self.BigListScrollView, vm.bigListScrollViewPosition, 'normalizedPosition')
+
+	--Slider
+	self:BindValue(self.RewardProgressSlider, vm.RewardProgressSliderValue, 'value')
+
 
 
 
@@ -233,6 +248,10 @@ UnionService:removeListener(UnionService.SucGetPointMemberListReplyEvent,self.On
 
 将服务器给到的UserMaterials（bonuses）列表数据给传入即可，可以直接用protobuff获取的数据传入即可。ShowNormalItemArrTips内部已经重新深拷贝了一个table作为tips所需的数据。
 
+如果直接取导表的奖励显示，则需要重新组合bonuse参数：注意：需要传列表，切参数对应
+bonus = {num=1,id=800001,type=1}
+UIManager.getItemEntry:ShowNormalItemArrTips({{materialType = bonus.type, id = bonus.id, quantity = bonus.num}})
+
 
 
 ## 确认弹窗
@@ -408,7 +427,7 @@ local sec = leftTime - hour * 3600 - min * 60
 str = string.format('%02d:%02d:%02d', hour, min, sec)
 
 
-## 定时器/Timer
+## Timer/定时器/一般用法
 
 	Timer.New(
 		function()
@@ -436,6 +455,35 @@ end,
 self.timer:Start() 
 
 self.timer:Stop()
+
+## Timer/倒计时
+function GetLongYingGameViewModel:StartCDTimer()
+	self:StopCDTimer()
+	self.cdStartTime = PlayerService.GetSystemSecondTime() + self.cd
+	self.CdTimeText(string.format('%ds', self.cd))
+	self.CdTimer =
+		Timer.New(
+		function()
+			self.cd = self.cdStartTime - PlayerService.GetSystemSecondTime() --防止切后台后定时器停止导致时间没有校准
+			if self.cd <= 0 then
+				self.cd = 0
+				self:StopCDTimer()
+			end
+			self.CdTimeText(string.format('%ds', self.cd))
+		end,
+		0.5,
+		-1,
+		true
+	)
+	self.CdTimer:Start()
+end
+
+function GetLongYingGameViewModel:StopCDTimer()
+	if self.CdTimer then
+		self.CdTimer:Stop()
+		self.CdTimer = nil
+	end
+end
 
 
 ## GetParentViewModelByName
@@ -515,6 +563,54 @@ self.heightTween:OnComplete(function()
 	self.heightTween = nil
 	self.reActivateParentPT({})
 end)
+
+
+
+
+if self.ScrollTween then
+	self.ScrollTween:Kill(true)
+	self.ScrollTween = nil
+end
+
+self.ScrollTween =
+	DG.Tweening.DOTween.To(
+	DG.Tweening.Core.DOSetter_float(
+		function(value)
+			--POSVector2.x = value
+			--self.LevelCellScrollRect.normalizedPosition = POSVector2
+			--直接用value干事情呀
+		end
+	),
+	startPosX, --起始值
+	endPosX, --最终值
+	0.3  --时间间隔
+):SetEase(DG.Tweening.Ease.OutCubic):OnComplete(
+	function()
+		self.ScrollTween = nil
+	end
+)
+
+
+## DOTWEEN/渐变
+
+self:BindValue(
+	self,
+	function()
+		local idx = vm.showFadeinIdx()
+		local go = self.RoleGos[idx]
+		if not goutil.IsNil(go) then
+			local image = goutil.GetImage(go, '')
+			image.color = UnityEngine.Color.New(1, 1, 1, 0)
+			self.lastTween = image:DOFade(1, 3)
+			self.lastTween:OnComplete(
+				function()
+					self.lastTween = nil
+				end
+			)
+		end
+	end,
+	'justNeed'
+)
 
 ## ToggleGroup
 可在Toggle按钮父节点（其他也可以）挂在一个ToggleGroup脚本组件，然后将该节点拖拽至Toggle控件中的Group即可。同一个ToggleGroup只会有一个Toggle组件被选中
@@ -714,3 +810,102 @@ ViewModel:
 
 PlayerPrefs.GetInt(KEY, 0)
 PlayerPrefs.SetInt(KEY, 1)
+
+
+## 显示货币
+
+UIManager.coinEntry:ShowCoin(self.gameObject, self.__cname)
+
+
+## 剧情播放
+
+--模块名
+CutsceneService
+
+--播文字剧情
+CutsceneService.PlayChatByFile(
+	'剧情文件名',
+	nil,
+	false,
+	function()
+		--播完后处理
+	end
+)
+
+## 5点刷新事件
+
+PlayerService:addListener(PlayerService.EVENT_HOUR_5_SERVER_UPDATE, self.OnHour5UpdateEvent, self)
+
+PlayerService:removeListener(PlayerService.EVENT_HOUR_5_SERVER_UPDATE, self.OnHour5UpdateEvent, self)
+
+
+## 亚比克制/对阵克制/亚比类型
+
+if pmType then
+	UIManager:Open('RestraintInfoPanelView', pmType)
+end
+
+
+## app锁屏/切后台
+
+游戏app锁屏返回可监听AppPauseEvent事件
+AppPauseEvent:Add(self.OnAppPause, self)
+
+
+## 跨周时间显示/活动配置时间
+
+--返回下周周一5点时间
+function EliteTestMainViewModel:_CheckWeekEndTime()
+	local curTime = PlayerService.GetSystemSecondTime()
+	local curWday = os.date('%w', curTime)
+	local endTimeTable = os.date('*t', curTime)
+	endTimeTable.hour = 5
+	endTimeTable.min = 0
+	endTimeTable.sec = 0
+	if curWday ~= 1 or hour >= 5 then
+		--跨过了当周的周一5点
+		endTimeTable.day = endTimeTable.day + (8 - curWday)
+	end
+
+	local endtime = os.time(endTimeTable) or 0
+	return endtime
+end
+
+--返回配置的activity_switch结束时间
+function EliteTestMainViewModel:_CheckWeekEndTime()
+	if self.groupId then
+		local activitySwitchId = AQ.WelfareActivity.OperationTaskConfigSetting.GetOperationGroupOnlineId(self.groupId)
+		local activitySwitchConfig = AQ.ActivitySvc.ActivitySetting.ActivitySwitchConfig[activitySwitchId]
+		local activityTimeConfig = activitySwitchConfig.OnlineTimeIntervals and activitySwitchConfig.OnlineTimeIntervals[1]
+		if activityTimeConfig then
+			return os.time(activityTimeConfig.endTime)
+		end
+	end
+	return PlayerService.GetSystemSecondTime()
+end
+
+
+## 取位数据/BitUtil
+
+--[[检测某一位的值是否为1，是1返回true，是0返回false
+ * @param value 需要检测的数字
+ * @param bitIndex 需要检测的下标
+ * @return 某一位的值是1返回true，是0返回false
+--]]
+BitUtil.CheckBitValue(value,bitIndex)
+
+例：local isOne = BitUtil.CheckBitValue(bit,idx - 1) == 1 --取第一位的值，
+
+--[["或"操作,设置某一位的值为1.（即是 1 | 某位）
+ * @param value 需要检测的数字
+ * @param bitIndex 范围[0~30]
+ * @return 返回"或"操作后的新值；-2：下标越位即是 bitIndex > 30了；-1：本来oldValue 的bitIndex位是1导致设置不成功，
+--]]
+BitUtil.GetNewBitValue(oldValue,bitIndex)
+
+例：bit = BitUtil.GetNewBitValue(bit), idx - 1) --将第一位的值置1
+
+## 活动规则/说明面板
+
+按钮图名称：wenhao
+UIManager:Open('CommonRuleView', '标题', '说明')

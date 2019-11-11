@@ -18,6 +18,7 @@ git config --global user.email test@mail.com
 
 git checkout -- <file> 还原未缓存的修改，
 git reset HEAD <file> 取消已缓存的内容，可指定文件。或全部还原已缓存的内容到非缓存
+git reset --soft HEAD^ 取消已缓存的内容，还原到上个版本，保留缓存的修改
 
 git diff <file> 查看未缓存的改动
 git diff --cached/--staged  查看已暂存的改动

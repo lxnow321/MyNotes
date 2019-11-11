@@ -1,6 +1,6 @@
 Unity常用代码模板
 
-1.编辑器增加自定义菜单
+## 1.编辑器增加自定义菜单
 
 class MyMenuClass
 {
@@ -12,7 +12,7 @@ class MyMenuClass
 }
 
 
-2.遍历获取编辑器中选中的对象或文件夹
+## 2.遍历获取编辑器中选中的对象或文件夹
 
 public static void SearchSelection()
 {
@@ -24,7 +24,7 @@ public static void SearchSelection()
 }
 
 
-3.遍历指定文件夹资源
+## 3.遍历指定文件夹资源
 
 public static void SearchAssets()
 {
@@ -37,3 +37,32 @@ public static void SearchAssets()
 		var importer = AssetImporter.GetAtPath(assetPath); //获取对应assetimporter
 	}
 }
+
+
+## 检测是否开启raycastTarget Gizemo绘制蓝框展示
+
+#if UNITY_EDITOR
+using UnityEngine;
+using System.Collections;
+using UnityEngine.UI;
+public class DebugUILine : MonoBehaviour
+{
+    static Vector3[] fourCorners = new Vector3[4];
+    void OnDrawGizmos()
+    {
+        Debug.LogError("test");
+        foreach (MaskableGraphic g in GameObject.FindObjectsOfType<MaskableGraphic>())
+        {
+            if (g.raycastTarget)
+            {
+                RectTransform rectTransform = g.transform as RectTransform;
+                rectTransform.GetWorldCorners(fourCorners);
+                Gizmos.color = Color.blue;
+                for (int i = 0; i < 4; i++)
+                    Gizmos.DrawLine(fourCorners[i], fourCorners[(i + 1) % 4]);
+
+            }
+        }
+    }
+}
+#endif
