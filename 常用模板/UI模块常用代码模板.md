@@ -909,3 +909,16 @@ BitUtil.GetNewBitValue(oldValue,bitIndex)
 
 按钮图名称：wenhao
 UIManager:Open('CommonRuleView', '标题', '说明')
+
+
+
+## DoubleClick等事件处理/UIGuideTrigger
+
+BuildUI
+self.ClickTrigger = AQ.Guide.UIGuideTrigger.Get(self.go)
+
+BindEvents
+self.ClickTrigger:AddDoubleClickListener(function() 
+	self.viewModel:DoubleClickHandler() 
+end)
+
