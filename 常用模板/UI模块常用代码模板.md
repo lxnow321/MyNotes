@@ -922,3 +922,12 @@ self.ClickTrigger:AddDoubleClickListener(function()
 	self.viewModel:DoubleClickHandler() 
 end)
 
+
+## 亚比皮肤判断
+
+SkinService.CheckSkinWhenInitFinished(
+	self.config.SkinId,
+	function(value)
+		self:UpdateOwn(value)
+	end
+)
