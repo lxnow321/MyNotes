@@ -6,6 +6,10 @@
 
 1656 * 960
 
+## 导表开发修改列颜色值
+
+230, 185, 184
+
 ## SearchIllegalTextureContext.txt修改
 
 GetLongYing:GetLongYing:GetLongYing/GetLongYingMain;GetLongYing/GetLongYingGame;GetLongYing/GetLongYingFastPlan:
@@ -882,6 +886,25 @@ function EliteTestMainViewModel:_CheckWeekEndTime()
 		end
 	end
 	return PlayerService.GetSystemSecondTime()
+end
+
+## 获取配置活动时间
+
+function EliteTestMainViewModel:GetActivityTimeDesc(activitySwitchId)
+	local activitySwitchConfig = AQ.ActivitySvc.ActivitySetting.ActivitySwitchConfig[activitySwitchId]
+	local activityTimeConfig = activitySwitchConfig.OnlineTimeIntervals and activitySwitchConfig.OnlineTimeIntervals[1]
+
+	local StartTime = activityTimeConfig.startTime
+	local EndTime = activityTimeConfig.endTime
+	return string.format(
+		'【活动时间】：%d年%d月%d日-%d年%d月%d日',
+		StartTime.year,
+		StartTime.month,
+		StartTime.day,
+		EndTime.year,
+		EndTime.month,
+		EndTime.day
+	)
 end
 
 
