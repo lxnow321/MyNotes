@@ -549,6 +549,41 @@ AssetLoaderService.PetIcon(
 	local animName = AQ.PetPackage.PetPackageConfigSetting.GetModelAnimName(skinId)
 
 
+## 亚比模型显示
+
+1. PmModel挂在RawImage(material:Default-No-Alpha)和UI3DEffect组件（去掉IsPrefab）
+   
+   注意：上述需在预制体中手动挂在，PmModelLoaderComponent去自动挂在有问题，待组件开发者去处理
+2. lua脚本挂在组件PmModelLoaderComponent
+self.PmModel = self.Panel:FindChild('PmModel')
+self.modelLoader = AQ.LuaComponent.GetOrAdd(self.PmModel, AQ.PmModelLoaderComponent)
+3. 绑定属性pm3DPT
+self:BindValue(
+		self,
+		function()
+			local data = vm.pm3DPT()
+			if data then
+				self.modelLoader:SetData(data)
+			end
+			return 1
+		end,
+		'justNeed'
+	)
+
+
+4. viewmodel中设置属性
+
+if self.stageConfig and self.stageConfig.ModelParam and self.stageConfig.ModelParam.modelId then
+	local param = self.stageConfig.ModelParam
+	local data = {}
+	data.ModelId = param.modelId
+	data.OffsetPosition = Vector3(param.px or 0, param.py or 0, param.pz or 0)
+	data.OffsetEulerAngles = Vector3(param.rx or 1, param.ry or 1, param.rz or 1)
+	data.Scale = param.scale
+	data.InitAnim = param.initAni
+	self.pm3DPT(data)
+end
+
 ## Dotween使用
 
 if self.heightTween then
@@ -897,13 +932,16 @@ function EliteTestMainViewModel:GetActivityTimeDesc(activitySwitchId)
 	local StartTime = activityTimeConfig.startTime
 	local EndTime = activityTimeConfig.endTime
 	return string.format(
-		'【活动时间】：%d年%d月%d日-%d年%d月%d日',
+		'活动时间：%d/%d/%d-%d/%d/%d %02d:%02d:%02d',
 		StartTime.year,
 		StartTime.month,
 		StartTime.day,
 		EndTime.year,
 		EndTime.month,
-		EndTime.day
+		EndTime.day,
+		EndTime.hour,
+		EndTime.min,
+		EndTime.sec
 	)
 end
 
@@ -954,3 +992,5 @@ SkinService.CheckSkinWhenInitFinished(
 		self:UpdateOwn(value)
 	end
 )
+
+
