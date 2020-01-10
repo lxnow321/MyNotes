@@ -16,7 +16,7 @@ class MyMenuClass
 
 public static void SearchSelection()
 {
-	Object[] objs = Selection.GetFilterd(typeof(GameObject), Selectionmode.DeepAssets); //DeepAssets遍历选中的所有子文件夹
+	UnityEngine.Object[] objs = Selection.GetFiltered(typeof(GameObject), SelectionMode.DeepAssets); //DeepAssets遍历选中的所有子文件夹
 	foreach(var obj in objs)
 	{
 		var target = obj as GameObject;
