@@ -128,7 +128,7 @@ GetLongYing:GetLongYing:GetLongYing/GetLongYingMain;GetLongYing/GetLongYingGame;
 		typeof(UnityEngine.Sprite), --typeof(UnityEngine.GameObject)
 		function(task, icon, err)
 			if not goutil.IsNil(icon) then
-				self.icon(icon) -- instGo = Unityengine.GameObject.Instantiate(go)
+				self.icon(icon) -- instGo = UnityEngine.GameObject.Instantiate(go)
 			end
 			self.loader = nil
 		end
@@ -145,7 +145,7 @@ GetLongYing:GetLongYing:GetLongYing/GetLongYingMain;GetLongYing/GetLongYingGame;
                     'huangguan_' .. self.rank,
                     typeof(UnityEngine.Sprite),
                     function(sprite, err)
-                        if sprite then
+                        if not goutil.IsNil(sprite) then
                             self.huangguanSprite(sprite)
                         end
                     end
@@ -346,6 +346,8 @@ instance.unionDungeonBonusConfig[key]
 	绑定Image的的material属性，修改material属性即可
 	self.onlineImgMaterial(GARY_MATERIAL)
 
+	self.onlineImgMaterial:setNil()
+
 
 ## 无线滚动/ScrollView
 
@@ -525,13 +527,12 @@ ChargeService.OpenViewById(ChargeService.UI_ID_XINGBI) --星币充值
 
 ## pm头像/亚比头像/宠物头像
 
-local modelId = SkinService.ConvertPetModelId(raceId)
-AssetLoaderService.PetIcon(
+AssetLoaderService.PetIconByRaceId(
 	AssetLoaderService.PET_ICON_90_90,
-	modelId,
+	raceId,
 	function(icon)
 		if not goutil.IsNil(icon) then
-			self.PMIcon(icon)
+			self.HeadIcon(icon)
 		end
 	end
 )
@@ -871,14 +872,35 @@ CutsceneService.PlayChatByFile(
 	end
 )
 
+
+-- 剧情播放（选择是否关闭开启活动页面）
+
+--WelfareActivityService.CloseWelfarePanel()
+FindHeiYiWangService.SetPlayStartPlotFlag(true)
+CutsceneService.PlayCutsceneAndBackToEnterScene(
+	FindHeiYiWangSetting.StartPlot,
+	nil,
+	function()
+		-- WelfareActivityService.OpenWelfarePanel(nil, AQ.PublicScene.WelfareActivityConfig.FIND_HEI_YI_WANG)
+	end
+)
+
 ## 5点刷新事件
 
+--废弃
 PlayerService:addListener(PlayerService.EVENT_HOUR_5_SERVER_UPDATE, self.OnHour5UpdateEvent, self)
 
 PlayerService:removeListener(PlayerService.EVENT_HOUR_5_SERVER_UPDATE, self.OnHour5UpdateEvent, self)
 
 
-## 亚比克制/对阵克制/亚比类型
+--新增
+PlayerService:addListener(PlayerService.EVENT_HOUR_5_CORRECT_SERVER_UPDATE, self.OnHour5Event, self)
+PlayerService:removeListener(PlayerService.EVENT_HOUR_5_CORRECT_SERVER_UPDATE, self.OnHour5Event, self)
+
+
+
+
+## 亚比克制/对阵克制/亚比类型/系别克制
 
 if pmType then
 	UIManager:Open('RestraintInfoPanelView', pmType)
@@ -966,7 +988,7 @@ BitUtil.GetNewBitValue(oldValue,bitIndex)
 
 例：bit = BitUtil.GetNewBitValue(bit), idx - 1) --将第一位的值置1
 
-## 活动规则/说明面板
+## 活动规则/说明面板/tips
 
 按钮图名称：wenhao
 UIManager:Open('CommonRuleView', '标题', '说明')
@@ -994,3 +1016,167 @@ SkinService.CheckSkinWhenInitFinished(
 )
 
 
+
+
+## 文本设置/Text
+
+<color=#00FF8aFF>颜色</color>
+<size=50>大小</size>
+<b>粗体</b>
+<i>斜体</i>
+
+
+## 物品图标
+
+MaterialService.GetMaterialIconByParams(
+	rewardBonus.type,
+	rewardBonus.id,
+	function(icon)
+		if not goutil.IsNil(icon) then
+			self.RewardIcon(icon)
+		end
+	end
+)
+
+## 能力按钮/亚比图鉴
+function GetLongYingMainViewModel:OnNengliBtnClick()
+	if not self.HasLongYing() then
+		TheBookOfKingService.OpenTujianDetailsView(GetLongYingSetting.LongYingRaceId, true)
+	else
+		local config = AQ.CommonSetting.PMSpiritConfig[GetLongYingSetting.LongYingRaceId]
+		local lastRaceId = config.Evolution[#config.Evolution]
+		TheBookOfKingService.OpenTujianDetailsView(lastRaceId, true)
+	end
+end
+
+## 判断时间范围/TimeUtil
+
+local curTimeStamp = PlayerService.GetSystemSecondTime()
+local activeTime = config.EffectTime
+local isInTime,notStart  = AQ.TimeUtil.IsInTime(curTimeStamp,activeTime.startTime,activeTime.endTime)
+
+
+
+## 礼包购买/充值
+
+
+--请求礼包信息
+BaseLimitGiftPackageService.GetUserAllCanShowBaseGiftPackageByIdRequest(EverydayDiscountSetting.GiftIds)
+
+--监听礼包信息事件
+BaseLimitGiftPackageService:addListener(
+	BaseLimitGiftPackageService.GetUserAllCanShowBaseGiftPackageByIdEvent,
+	self.OnGetUserAllCanShowBaseGiftPackageByIdEvent,
+	self
+)
+
+--监听礼包购买push信息
+BaseLimitGiftPackageService:addListener(
+	BaseLimitGiftPackageService.BaseGiftPackagePushEvent,
+	self.OnBaseGiftPackagePushEvent,
+	self
+)
+
+返回的礼包数据结构 BaseGiftPackageInfo
+
+--礼包购买请求
+BaseLimitGiftPackageService.Pay(self.giftId)
+
+
+--礼包显示
+self.giftConfig = AQ.BaseLimitGiftPackage.BaseLimitGiftPackageSetting.BaseLimitGiftPackageConfig[self.giftId]
+
+--礼包人民币价格
+local num = AQ.Vip.PayConfigSetting.GetRmbNum(self.giftConfig.GoodsId)
+self.BuyBtnText = self.createProperty(string.format('%s元', num))
+
+--基础礼包中对应礼物物品中的具体物品
+if self.giftConfig and self.giftConfig.Bonus then
+	local giftBonus = self.giftConfig.Bonus[1]
+	local items = MaterialService.GetMaterialContainBonus(giftBonus.type, giftBonus.id)
+	if items then
+		local item = items[1]
+		self.NumText(
+			string.format('%s<color=#fff13d>x%s</color>', MaterialService.GetMaterialName(item.type, item.id), item.num)
+		)
+	end
+end
+
+
+## 不规则图片点击
+
+节点上挂在ImagePloygon和PloygonCollider2D，代码中挂在UIClickTrigger
+
+self.ColliderClick = Framework.UIClickTrigger.Get(self.Collider)
+self:BindEvent(self.ColliderClick, closure(vm.OnBtnClick, vm), DataBind.EventType.PointerClick, self, nil)
+
+## 亚比立绘加载
+
+local modelId = AQ.Skin.SkinUtil.ConvertPetModelId(RaceId, SkinId)
+AssetLoaderService.PetIcon(AssetLoaderService.PET_ICON_LIHUI, modelId, function(icon)
+	if not goutil.IsNil(icon) then
+		self.LiHuiImg(icon)
+	end
+end)
+
+## 全屏点击/自定义物品点击
+
+
+view:
+
+self.RewardGlobalTouch = AQ.UIGlobalTouchTrigger.Get(self.RewardBtn)
+self.RewardBtnClick = Framework.UIClickTrigger.Get(self.RewardBtn)
+
+self:BindEvent(self.RewardGlobalTouch, closure(vm.CloseTips, vm), DataBind.EventType.IgnoreTargetGlobalTouch, self, 1)
+self:BindEvent(self.RewardBtnClick, closure(vm.OnRewardBtnClick, vm), DataBind.EventType.PointerClick, self, nil)
+
+
+viewmodel:
+
+function HeiBaiWuMianMainViewModel:OnRewardBtnClick(view, eventData)
+	if not self.isGetReward and self.mySelectId and self.mySelectId > 0 then
+		--请求奖励
+		HeiBaiWuMianService.GetHeiBaiRewardRequest()
+	else
+		local rewardBonus = HeiBaiWuMianSetting.Bonus and HeiBaiWuMianSetting.Bonus[1]
+		if rewardBonus then
+			self:OpenTips(eventData, rewardBonus.type, rewardBonus.id)
+		end
+	end
+end
+
+function HeiBaiWuMianMainViewModel:OpenTips(eventData, itemType, itemId)
+	local success, x, y, z = AQ.WorldCameraPosUtil.Screen2Camera(eventData.position)
+	if success then
+		MaterialService.OpenMaterialTips(true, itemType, itemId, Vector3(x, y, z))
+	end
+end
+
+function HeiBaiWuMianMainViewModel:CloseTips(view, x, y)
+	MaterialService.OpenMaterialTips(false)
+end
+
+
+## 最后一周/lastweek
+self.LastWeekGroup = self.Panel:FindChild('LastWeekGroup')
+#1小标签 2打标签
+GMService.AddLastWeekTip(self.LastWeekGroup, HeiBaiWuMianSetting.ActivitySwitchId, 2)
+
+## 判断亚比超进化
+
+PetPackageService.GetEvolutionState(self.raceId) == PetPackageService.EVOLUTION_STATE_3
+
+
+## 亚比技能展示
+local TestSkillId = self.Config.Ext and self.Config.Ext.TestSkillId
+if TestSkillId then
+	local callback = function()
+		UIManager:Open('WelfareActivityView', nil, AQ.PublicScene.WelfareActivityConfig.MEIKA_DIRECT_SELL)
+	end
+	CombatService.StartSkillTestBattle(TestSkillId, callback)
+end
+
+
+## 福利/活动跳转参数
+
+{type:"ui",params:{name:"WelfareActivityView",args:[null,296]}}

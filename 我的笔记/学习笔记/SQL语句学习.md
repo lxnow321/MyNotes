@@ -16,6 +16,7 @@
 
 * SELECT * FROM table; 查询table中的所有
 * SELECT * FROM userInfo WHERE userId = 1001; 查询table表中userId为1001的数据
+* SELECT * FROM userInfo WHERE userId = 1001 OR userId= 1002; 查询table表中userId为1001的数据
   
 | :运算符 | 释义                                 | 示例                                                       |
 | :------ | :----------------------------------- | ---------------------------------------------------------- |
