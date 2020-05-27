@@ -1119,7 +1119,7 @@ AssetLoaderService.PetIcon(AssetLoaderService.PET_ICON_LIHUI, modelId, function(
 	end
 end)
 
-## 全屏点击/自定义物品点击
+## 全屏点击/自定义物品点击/global
 
 
 view:
