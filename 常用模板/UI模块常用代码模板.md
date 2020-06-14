@@ -98,6 +98,9 @@ GetLongYing:GetLongYing:GetLongYing/GetLongYingMain;GetLongYing/GetLongYingGame;
 		end
 	)
 
+	--绑定cellviewmodel
+	local vm = UIManager:GetVM('SpyDaxterDefensePMIconView', 'AQ.SpyDaxter.SpyDaxterDefensePMIconViewModel', self, i, pmId)
+
 ## 重新绑定/reBinding
 
 	（新建viewModel重新绑定到旧的view中，用于对象列表复用view情况）
@@ -1156,6 +1159,10 @@ function HeiBaiWuMianMainViewModel:CloseTips(view, x, y)
 	MaterialService.OpenMaterialTips(false)
 end
 
+--将节点放到同级最后
+self.transform:SetSiblingIndex(-1)
+
+
 
 ## 最后一周/lastweek
 self.LastWeekGroup = self.Panel:FindChild('LastWeekGroup')
@@ -1180,3 +1187,33 @@ end
 ## 福利/活动跳转参数
 
 {type:"ui",params:{name:"WelfareActivityView",args:[null,296]}}
+
+
+## 是否神宠判断
+神宠和普通宠物边框不同
+pethead_bgkuang
+pethead_bgkuang_sc
+MaterialService.CheckIsGodPetByRaceId(pmInfo.raceId)
+
+
+## 3D玩家模型加载
+
+参考SinglePKMainView 显示在ui上层
+
+参考ShopMainFashionView 使用AQ.Player.PlayerUI3DFollowController组件，但是会被ui挡住
+
+
+## buff描述/buff tips
+
+function SZMZBuffSmallCellViewModel:OpenTips(view, eventData)
+	local success,x,y,z = AQ.WorldCameraPosUtil.Screen2Camera( eventData.position )
+    if success then
+    	local buffId = DistributeBuffChallengeSetting.GetBuffEffectId(self.id)
+		local config = CommonSetting.EffectInfoConfig[buffId]
+		UIManager.tipsEntry:ShowBuffTip(true,config.Name,config.Desc,Vector3(x,y,z))
+	end
+end
+
+function SZMZBuffSmallCellViewModel:CloseTips()
+	UIManager.tipsEntry:ShowBuffTip(false)
+end
