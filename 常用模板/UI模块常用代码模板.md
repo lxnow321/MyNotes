@@ -16,6 +16,10 @@ GetLongYing:GetLongYing:GetLongYing/GetLongYingMain;GetLongYing/GetLongYingGame;
 
 预制文件夹：默认检测的文件夹名：用到的其他图集文件夹名（用封号';'隔开）
 
+## 多语言版本文字处理
+
+AQ.LocalizationString.getStringByWord 代替 string.format(..)  跟 ..
+
 ## BuildUI UI获取
 
 	self.gameObject                       获取自身gameObject
@@ -159,8 +163,8 @@ GetLongYing:GetLongYing:GetLongYing/GetLongYingMain;GetLongYing/GetLongYingGame;
 
 	disepose调用:
 	if self.loader then
-		self.loader:UnloadAllBundles() --看情况加，一般不需要
 		self.loader:Cancel()
+		self.loader:UnloadAllBundles() --看情况加，一般不需要
 		self.loader = nil
 	end
 
@@ -352,7 +356,7 @@ instance.unionDungeonBonusConfig[key]
 	self.onlineImgMaterial:setNil()
 
 
-## 无线滚动/ScrollView
+## 无限滚动/ScrollView
 
 	self.cellsContentScroll = AQ.InfiniteScrollView.Get(scrollGo)
 	self:LoadChildPrefab(
@@ -379,6 +383,7 @@ instance.unionDungeonBonusConfig[key]
 
 * InfiniteScrollView组件是自动加上去的，Prefab上的Content不需要加ContentSizeFitter以及LayoutGroup等。
 * InfiniteScrollVie组件永远是将子UI左贴齐的，所以调整ScrollView窗口大小时注意调整好
+* 注意：如果类似排行榜等切换页面刷新cellcollection的，需要将scrollview的pos置为初始状态，否则bind的viewmodel会报空
 
 
 ## 事件监听/addListener
@@ -951,23 +956,29 @@ end
 ## 获取配置活动时间
 
 function EliteTestMainViewModel:GetActivityTimeDesc(activitySwitchId)
+	local activitySwitchId = GalaxyExploreSetting.GetSpecialPlanteActivitySwitchId()
 	local activitySwitchConfig = AQ.ActivitySvc.ActivitySetting.ActivitySwitchConfig[activitySwitchId]
-	local activityTimeConfig = activitySwitchConfig.OnlineTimeIntervals and activitySwitchConfig.OnlineTimeIntervals[1]
+	local activityTimeConfig =
+		activitySwitchConfig and activitySwitchConfig.OnlineTimeIntervals and activitySwitchConfig.OnlineTimeIntervals[1]
 
-	local StartTime = activityTimeConfig.startTime
-	local EndTime = activityTimeConfig.endTime
-	return string.format(
-		'活动时间：%d/%d/%d-%d/%d/%d %02d:%02d:%02d',
-		StartTime.year,
-		StartTime.month,
-		StartTime.day,
-		EndTime.year,
-		EndTime.month,
-		EndTime.day,
-		EndTime.hour,
-		EndTime.min,
-		EndTime.sec
-	)
+	if activityTimeConfig then
+		local StartTime = activityTimeConfig.startTime
+		local EndTime = activityTimeConfig.endTime
+		return AQ.LocalizationString.format(
+			'活动时间：%d/%d/%d-%d/%d/%d %02d:%02d:%02d',
+			StartTime.year,
+			StartTime.month,
+			StartTime.day,
+			EndTime.year,
+			EndTime.month,
+			EndTime.day,
+			EndTime.hour,
+			EndTime.min,
+			EndTime.sec
+		)
+	else
+		return AQ.LocalizationString.getStringByWord('活动时间：长期')
+	end
 end
 
 
@@ -1210,6 +1221,7 @@ function SZMZBuffSmallCellViewModel:OpenTips(view, eventData)
     if success then
     	local buffId = DistributeBuffChallengeSetting.GetBuffEffectId(self.id)
 		local config = CommonSetting.EffectInfoConfig[buffId]
+		--显示buff接口
 		UIManager.tipsEntry:ShowBuffTip(true,config.Name,config.Desc,Vector3(x,y,z))
 	end
 end
@@ -1217,3 +1229,53 @@ end
 function SZMZBuffSmallCellViewModel:CloseTips()
 	UIManager.tipsEntry:ShowBuffTip(false)
 end
+
+## 无限滚动/循环滚动/InfiniteScrollView
+   - 增加组件ScrollView，注意Content下不要加Grid相关的脚本组件（disable也不行，否则出现无限滚动无效）
+   - View中获取ScrollView所在的GameObject节点scrollGo
+   - 通过self.itemsContentScroll = AQ.InfiniteScrollView.Get(scrollGo)在scrollGo上绑定一个Infinite的cs脚本组件
+   - 在BindValues中通过LoadChildPrefab绑定
+
+			self:LoadChildPrefab(
+				"XXSubView",
+				function(task, prefab, cellCls)
+					self:BindValue(self.itemsContentScroll, vm.collections, nil, 
+					{ 
+						bindType = DataBind.BindType.ScrollRectCollection, mainView = self, cellCls = cellCls, prefab = prefab 
+						, params = {DataBind.ScrollDir.Vertical,811,100,0,5,1}
+						--width,height,widthSpacing,heightSpacing,perlineNum
+						--宽，高，宽间隔，高间隔，每行数量
+					})
+				end
+			)
+	- 在ViewModel中生成想要的数量items即可
+
+***
+
+
+## 模型layer/SetLayer
+
+	AQ.GameObjectUtil.SetLayer(go, LayerMask.NameToLayer('NPC'))
+
+
+## 选择亚比
+
+UIManager:Open('CommonSelectPetBigView', raceIdTab, confirmCb, 'title')
+
+## 年卡
+
+判断是否年卡
+AnnualVipService.IsAnnualVip()
+
+年卡刷新
+AnnualVipService.AnnualVipInfoReplyEvent
+年卡购买
+AnnualVipService.AnnualVipChargePushEvent
+
+购买年卡
+AnnualVipService.PackBuyRequest()
+
+
+## 亚比最高战力
+
+PetPackageService.GetMaxCE(self.raceId)

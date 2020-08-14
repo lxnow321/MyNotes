@@ -69,3 +69,9 @@ Account.func2(Account, 20)
 由于tolua当前使用的luajit2.1版本，而luajit2.1兼容的lua版本是5.1，所以学习时注意使用lua5.1的文档查阅。
 
 3.由于lua版本的不同，可能有些函数方法可能会不一样。要注意此处的差别。
+
+
+## 2020.8.14 星期五
+### userdata
+1. full userdata :看做是一个C的自定义类型交互数据
+2. light userdata：看做一个C的指针类型交互数据
