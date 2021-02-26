@@ -31,7 +31,7 @@ https://www.jianshu.com/p/71fffc9a9cac
 
 3. 以前项目使用C#+JSBinding框架做热更新
    
-   JSBinding框架是使用SharpKit将C#代码转换成JavaScript代码进行热更。其框架中还集成了mozjs（对SpiderMoneky引擎的封装）。SpiderMoneky采用解释和JIT混合运行，所以该套框架JavaScript在ios上的热更同样是寄语SpiderMoneky的解释运行。
+   JSBinding框架是使用SharpKit将C#代码转换成JavaScript代码进行热更。其框架中还集成了mozjs（对SpiderMoneky引擎的封装）。SpiderMoneky采用解释和JIT混合运行，所以该套框架JavaScript在ios上的热更同样是基于SpiderMoneky的解释运行。
    注意：V8引擎抛弃了解释器，完全使用了JIT
 
 	引擎浅谈 SpiderMonkey & Google V8

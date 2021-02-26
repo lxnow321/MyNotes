@@ -87,6 +87,7 @@ AQ.LocalizationString.getStringByWord 代替 string.format(..)  跟 ..
 ## SetActive显示绑定
 
 	self:BindValue(self.Panel, vm.showPanel,nil,{bindType = DataBind.BindType.SetActive, invert = false})
+	self:BindActive(self.Panel, vm.showPanel)
 
 ## LoadChildPrefab 子UI绑定
 	
@@ -95,15 +96,20 @@ AQ.LocalizationString.getStringByWord 代替 string.format(..)  跟 ..
 		function(task, prefab, cellCls)
 			self:BindValue(
 				self.bindObject,
-				self.viewModel.xxViewCollections,
+				vm.xxViewCollections,
 				nil,
 				{bindType = DataBind.BindType.Collection, mainView = self, cellCls = cellCls, prefab = prefab}
 			)
 		end
 	)
 
+## 懒加载 子UI创建
 	--绑定cellviewmodel
 	local vm = UIManager:GetVM('SpyDaxterDefensePMIconView', 'AQ.SpyDaxter.SpyDaxterDefensePMIconViewModel', self, i, pmId)
+
+## 子UI挂在父级POS
+local Pos = self.transform.parent.gameObject:FindChild(string.format('Pos%s', vm.idx))
+self.transform.localPosition = Pos.transform.localPosition
 
 ## 重新绑定/reBinding
 
@@ -256,6 +262,11 @@ UnionService:removeListener(UnionService.SucGetPointMemberListReplyEvent,self.On
 ## 显示物品获得tips
 
 	UIManager.getItemEntry:ShowNormalItemArrTips(msg.bonuses)
+
+	--用这个全一些
+	UIManager.getItemEntry:GetItem(bonuses, nil, 0, true, true)
+
+
 
 将服务器给到的UserMaterials（bonuses）列表数据给传入即可，可以直接用protobuff获取的数据传入即可。ShowNormalItemArrTips内部已经重新深拷贝了一个table作为tips所需的数据。
 
@@ -440,6 +451,12 @@ local min = math.floor((leftTime - hour * 3600) / 60)
 local sec = leftTime - hour * 3600 - min * 60
 str = string.format('%02d:%02d:%02d', hour, min, sec)
 
+另外一种
+local h = math.floor(second / 3600)
+local m = math.floor((second % 3600) / 60)
+local s = math.floor((second % 3600) % 60)
+str = string.format('%02d:%02d:%02d', h, m, s)
+
 
 ## Timer/定时器/一般用法
 
@@ -473,12 +490,12 @@ self.timer:Stop()
 ## Timer/倒计时
 function GetLongYingGameViewModel:StartCDTimer()
 	self:StopCDTimer()
-	self.cdStartTime = PlayerService.GetSystemSecondTime() + self.cd
+	self.cdStartTime = ServerTime.now() + self.cd
 	self.CdTimeText(string.format('%ds', self.cd))
 	self.CdTimer =
 		Timer.New(
 		function()
-			self.cd = self.cdStartTime - PlayerService.GetSystemSecondTime() --防止切后台后定时器停止导致时间没有校准
+			self.cd = self.cdStartTime - ServerTime.now() --防止切后台后定时器停止导致时间没有校准
 			if self.cd <= 0 then
 				self.cd = 0
 				self:StopCDTimer()
@@ -544,6 +561,8 @@ AssetLoaderService.PetIconByRaceId(
 		end
 	end
 )
+
+AssetLoaderService.PetIcon(AssetLoaderService.PET_ICON_90_90, modelId, callback)
 
 ## PM/亚比模型加载
 
@@ -925,7 +944,7 @@ AppPauseEvent:Add(self.OnAppPause, self)
 
 --返回下周周一5点时间
 function EliteTestMainViewModel:_CheckWeekEndTime()
-	local curTime = PlayerService.GetSystemSecondTime()
+	local curTime = ServerTime.now()
 	local curWday = os.date('%w', curTime)
 	local endTimeTable = os.date('*t', curTime)
 	endTimeTable.hour = 5
@@ -1000,7 +1019,7 @@ BitUtil.CheckBitValue(value,bitIndex)
 --]]
 BitUtil.GetNewBitValue(oldValue,bitIndex)
 
-例：bit = BitUtil.GetNewBitValue(bit), idx - 1) --将第一位的值置1
+例：bit = BitUtil.GetNewBitValue(bit, idx - 1) --将第一位的值置1
 
 ## 活动规则/说明面板/tips
 
@@ -1034,8 +1053,8 @@ SkinService.CheckSkinWhenInitFinished(
 
 ## 文本设置/Text
 
-<color=#00FF8aFF>颜色</color>
-<size=50>大小</size>
+<color=#00FF8aFF>%s</color>
+<size=50>%s</size>
 <b>粗体</b>
 <i>斜体</i>
 
@@ -1126,12 +1145,27 @@ self:BindEvent(self.ColliderClick, closure(vm.OnBtnClick, vm), DataBind.EventTyp
 
 ## 亚比立绘加载
 
+
+--全身像
 local modelId = AQ.Skin.SkinUtil.ConvertPetModelId(RaceId, SkinId)
 AssetLoaderService.PetIcon(AssetLoaderService.PET_ICON_LIHUI, modelId, function(icon)
 	if not goutil.IsNil(icon) then
 		self.LiHuiImg(icon)
 	end
 end)
+
+
+--半身像
+local modelId = AQ.Skin.SkinUtil.ConvertPetModelId(RaceId, SkinId)
+AssetLoaderService.PetIcon(
+	AssetLoaderService.PET_ICON_144_208,
+	modelId,
+	function(icon)
+		if not goutil.IsNil(icon) then
+			self.PmLiHui(icon)
+		end
+	end
+)
 
 ## 全屏点击/自定义物品点击/global
 
@@ -1279,3 +1313,57 @@ AnnualVipService.PackBuyRequest()
 ## 亚比最高战力
 
 PetPackageService.GetMaxCE(self.raceId)
+
+
+## 时装试穿
+
+UIManager:Open('CommonPreviewView', nil, {self.fashionGoodsId})
+
+这个好像是打开商店里的，还没用过
+--ShopService.OpenShopById(ShopService.ShopId.Fashion, self.goodsId)
+
+
+## 申请消息/邀请/组队/
+SceneService.AddNotification(
+	AQ.Scene.NotificationTag.TutorBeInvate,
+	function()
+		UIManager:Open('TutorBeInviteView')
+	end
+)
+
+SceneService.RemoveNotification(AQ.Scene.NotificationTag.TutorApply)
+
+## 坐骑测试指令
+
+local unit = SceneService.LocalPlayerUnit()
+unit:VarsUpdate({{key="mount",value="38,2"}}, false)
+
+
+## 物品获得路径
+MaterialService.OpenGetMaterialTraceView(bonusConfig.type, bonusConfig.id)
+
+## 商品购买界面
+
+-- local goodsInfo = AQ.Shop.DataMgr.GetGoodsInfo(shopId, goodsId)
+-- UIManager:Open('ShopBuyMutiView', goodsInfo, goodsInfo:GetLeftBuyNum(), true, "兑换战舰零件")
+
+## 战斗场景屏蔽
+if SceneService.IsInSceneByType(AQ.Scene.SceneType.Combat) then
+	UIManager.dialogEntry:ShowConfirmDialog(AQ.LocalizationString.getStringByWord('在战斗场景不能执行此操作'))
+	return
+end
+
+## Setting/配置
+
+一般使用primaryKey来指定主键
+UnionBossPersonTimesBonusConfig = {path = 'Commons.Config.UnionBoss.UnionBossPersonTimesBonusConfig',primaryKey = {'Id'}},
+
+如果没有合适的key做主键使其连续，可以使用asArray =true
+UnionPlanetPersonDamageRankConfig = {path = 'Commons.Config.UnionPlanet.UnionPlanetPersonDamageRankConfig',asArray =true},
+
+
+## 移除/恢复某一层界面节点
+
+UIManager:HideDirLevelViews('SCENE')
+
+UIManager:RestoreDirLevelViews('SCENE')
