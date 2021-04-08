@@ -17,8 +17,18 @@ git config --global user.email test@mail.com
 
 
 git checkout -- <file> 还原未缓存的修改，
+git checkout -f [-- <file>] 强制丢弃掉所有已缓存或未暂存的本地目录的修改内容
+
 git reset HEAD <file> 取消已缓存的内容，可指定文件。或全部还原已缓存的内容到非缓存
+git reset commit -- filename 重置某个文件到指定版本
 git reset --soft HEAD^ 取消已缓存的内容，还原到上个版本，保留缓存的修改
+
+对比:git checkout commit filename 和 git reset commit filename
+git checkout commit filename：直接将文件还原到指定的commit并缓存
+git reset commit filename:则会将文件还原到指定commit的差异缓存，而还原后到head版本的差异则作为未缓存的修改。如果丢弃掉这个未缓存的修改，即与git checkout commit filename一样的效果。
+
+git revert commit 回滚某次提交，如果没有冲突，会自动创建一次提交
+git revert commit -n  回滚某次提交，但是不自动创建一次提交
 
 git diff <file> 查看未缓存的改动
 git diff --cached/--staged  查看已暂存的改动

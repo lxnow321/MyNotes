@@ -912,6 +912,15 @@ CutsceneService.PlayCutsceneAndBackToEnterScene(
 	end
 )
 
+if not string.nilorempty(plotName) then
+	CutsceneService.PlayCutsceneAndBackToEnterScene(
+		plotName,
+		nil,
+		function()
+		end
+	)
+end
+
 ## 5点刷新事件
 
 --废弃
@@ -1367,3 +1376,46 @@ UnionPlanetPersonDamageRankConfig = {path = 'Commons.Config.UnionPlanet.UnionPla
 UIManager:HideDirLevelViews('SCENE')
 
 UIManager:RestoreDirLevelViews('SCENE')
+
+
+## 刷新功能hud / Command
+
+PublicSceneService.UpdateFuncStateByFuncId(funcId)
+
+
+## 协议/Agent
+
+function AnniversaryFavorsGiftXNetWorkAgent.AnniversaryFavorsGiftXSelectCoreRequest(actId, schemeId, selectCoreScheme1)
+    UIManager.modalEntry:LockScreen(lockScreenKey)
+    local request = AnniversaryFavorsGiftXExtension_pb.AnniversaryFavorsGiftXSelectCoreRequest()
+    request.actId = actId
+    request.schemeId = schemeId
+
+    -- request.selectCoreScheme1 = {} --table不再需要赋值{}
+    for _, v in ipairs(selectCoreScheme1) do
+        local coreItem = AnniversaryFavorsGiftXExtension_pb.GiftSelectCoreItem()
+        coreItem.linkId = v.linkId
+        -- coreItem.coreIds = {}
+        for i, id in ipairs(v.coreIds) do
+            table.insert(coreItem.coreIds, id)
+        end
+        table.insert(request.selectCoreScheme1, coreItem)
+    end
+    
+    instance._SendMsg(request)
+end
+
+
+
+## 图标，文字对齐/居中
+1. 同一个GameObject下挂载 文字，图标等节点，并增加layout脚本及content size fitter
+注意layout不需要要勾选child controls size 和 child force expand。
+2. Text组件，需要增加content size fitter 组件，用于将rect transform保持为当前文字显示大小
+
+3. 如果图标或者其他不需要跟随主体进行居中或者其他，只需要相对某个节点进行位置变动，将其置为该节点的子节点即可。
+
+
+## 滚动文字/滑动文字
+
+1.创建ScrollView，在Content节点上加入layout和content size fitter组件。
+2.layout组件勾选 child controls size 的width 和 height
